@@ -8,3 +8,5 @@ venv/
 
 # Ignore Mac system files (good practice for cross-platform teams)
 .DS_Store
+
+.env
