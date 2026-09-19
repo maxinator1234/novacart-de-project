@@ -8,8 +8,8 @@ def generate_mock_csv(file_path):
     os.makedirs(os.path.dirname(file_path), exist_ok=True)
     
     data = {
-        "order_id": [1, 2, 3, 4],
-        "shipping_status": ["Delivered", "In Transit", "Delayed", "Shipped"],
+        "order_id": [1, 2, 3, 4],  # Intentionally added a NULL (None)
+        "shipping_status": ["Delivered", "In Transit", "UNKNOWN_ERROR", "Shipped"],
         "estimated_delivery": ["2026-09-02", "2026-09-06", "2026-09-10", "2026-09-05"]
     }
     
