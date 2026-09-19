@@ -1,4 +1,5 @@
 import os
+import sys
 import pandas as pd
 import pandera.pandas as pa
 
@@ -33,7 +34,7 @@ def validate_logistics_data():
         print("\nCRITICAL PIPELINE FAILURE: Data Validation Failed!")
         print(f"Error Details: {e}")
         # In production, we would stop the pipeline here.
-        return None
+        sys.exit(1)
 
 if __name__ == "__main__":
     validate_logistics_data()
