@@ -1,4 +1,5 @@
 import os
+import sys
 import pandas as pd
 from sqlalchemy import create_engine
 from dotenv import load_dotenv
@@ -7,38 +8,41 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # 2. Get credentials securely
-USER = os.getenv('POSTGRES_USER')
-PASSWORD = os.getenv('POSTGRES_PASSWORD')
-DB = os.getenv('POSTGRES_DB')
-HOST = 'localhost'
-PORT = '5432'
+USER = os.getenv("POSTGRES_USER")
+PASSWORD = os.getenv("POSTGRES_PASSWORD")
+DB = os.getenv("POSTGRES_DB")
+HOST = "localhost"
+PORT = "5432"
 
 # 3. Create the SQLAlchemy connection string
-# Format: postgresql://username:password@host:port/database_name
 connection_string = f"postgresql://{USER}:{PASSWORD}@{HOST}:{PORT}/{DB}"
 
-def extract_table(table_name):
+
+def extract_table(table_name: str) -> pd.DataFrame:
     """Connects to Postgres and extracts a table to a Pandas DataFrame."""
     try:
-        # Create database engine
         engine = create_engine(connection_string)
-        print(f"Successfully connected to the database!")
-        
-        # Execute query
+        print(f"Connecting to extract '{table_name}'...")
+
         query = f"SELECT * FROM {table_name};"
         df = pd.read_sql(query, engine)
-        
-        print(f"\nExtracted {len(df)} rows from '{table_name}' table:")
+
+        print(f"Extracted {len(df)} rows from '{table_name}' table:")
         print(df.head())
         return df
-        
+
     except Exception as e:
-        print(f"Error extracting data: {e}")
-        return None
+        print(f"CRITICAL ERROR extracting '{table_name}': {e}")
+        sys.exit(1)
+
 
 if __name__ == "__main__":
-    # Test the function by extracting the users table
-    users_df = extract_table("orders")
-    file_path = os.path.join("data", "raw", "users.parquet")
+    tables = ["users", "products", "orders"]
+    output_dir = os.path.join("data", "raw")
+    os.makedirs(output_dir, exist_ok=True)
 
-    users_df.to_parquet(file_path)
+    for table in tables:
+        df = extract_table(table)
+        file_path = os.path.join(output_dir, f"{table}.parquet")
+        df.to_parquet(file_path, index=False)
+        print(f"Saved {file_path}\n{'-'*40}")
