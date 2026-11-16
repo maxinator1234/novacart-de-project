@@ -1,39 +1,59 @@
+import logging
+import os
 import subprocess
 import sys
+import time
 
-def run_script(script_path):
-    """Runs a Python script and stops the pipeline if it fails."""
-    print(f"\n{'='*50}")
-    print(f"🚀 RUNNING: {script_path}")
-    print(f"{'='*50}")
-    
-    # Run the script using the current Python environment
+# Ensure logs directory exists before configuring FileHandler
+os.makedirs("logs", exist_ok=True)
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s | %(levelname)-8s | %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+    handlers=[
+        logging.FileHandler(os.path.join("logs", "pipeline.log"), encoding="utf-8"),
+        logging.StreamHandler(sys.stdout),
+    ],
+)
+
+
+def run_script(script_path: str) -> None:
+    """Runs a pipeline stage, logs its duration, and halts immediately on failure."""
+    logging.info(f"STARTING STAGE: {script_path}")
+    start_time = time.perf_counter()
+
     result = subprocess.run([sys.executable, script_path])
-    
-    # A return code of 0 means success. Anything else means it crashed.
+
+    # 1. Calculate how many seconds this stage took
+    elapsed = round(time.perf_counter() - start_time, 2)
+
+    # 2. Check if the script succeeded (0) or failed (anything else)
     if result.returncode != 0:
-        print(f"\n❌ PIPELINE HALTED: Error in {script_path}")
+        logging.error(
+            f"PIPELINE HALTED: {script_path} failed with exit code {result.returncode} after {elapsed}s"
+        )
         sys.exit(1)
     else:
-        print(f"\n✅ SUCCESS: {script_path} completed.")
+        logging.info(f"SUCCESS: {script_path} completed in {elapsed}s")
+
 
 if __name__ == "__main__":
-    print("Starting NovaCart ELT Pipeline...")
-    
-    # Step 1: Extract
-    run_script("src/extract/extract_postgres.py")
-    run_script("src/extract/extract_csv.py")
-    
-    # Step 2: Validate
-    run_script("src/validation/validate_logistics.py")
-    
-    # Step 3: Load
-    run_script("src/load/load_warehouse.py")
+    pipeline_start = time.perf_counter()
+    logging.info("=== NovaCart ELT Pipeline Started ===")
 
-    # Step 4: Transform
-    run_script("src/transform/build_star_schema.py")
+    stages = [
+        "src/extract/extract_postgres.py",
+        "src/extract/extract_csv.py",
+        "src/validation/validate_logistics.py",
+        "src/load/load_warehouse.py",
+        "src/transform/build_star_schema.py",
+        "src/quality/test_gold_schema.py",
+    ]
 
-    # Step 5: Data Quality Checks
-    run_script("src/quality/test_gold_schema.py")
-    
-    print("\n🎉 PIPELINE FINISHED SUCCESSFULLY! 🎉")
+    # 3. Run each stage in order
+    for stage in stages:
+        run_script(stage)
+
+    total_elapsed = round(time.perf_counter() - pipeline_start, 2)
+    logging.info(f"=== NovaCart ELT Pipeline Finished Successfully in {total_elapsed}s ===")
