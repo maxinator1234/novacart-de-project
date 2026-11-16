@@ -1,12 +1,5 @@
-# Ignore data folders
-data/raw/
-data/processed/
-
-# Ignore Python virtual environments
 venv/
-.env/
-
-# Ignore Mac system files (good practice for cross-platform teams)
-.DS_Store
-
 .env
+__pycache__/
+*.pyc
+data/

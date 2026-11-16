@@ -29,5 +29,8 @@ if __name__ == "__main__":
     
     # Step 3: Load
     run_script("src/load/load_warehouse.py")
+
+    # Step 4: Transform
+    run_script("src/transform/build_star_schema.py")
     
     print("\n🎉 PIPELINE FINISHED SUCCESSFULLY! 🎉")
