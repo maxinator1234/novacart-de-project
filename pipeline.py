@@ -32,5 +32,8 @@ if __name__ == "__main__":
 
     # Step 4: Transform
     run_script("src/transform/build_star_schema.py")
+
+    # Step 5: Data Quality Checks
+    run_script("src/quality/test_gold_schema.py")
     
     print("\n🎉 PIPELINE FINISHED SUCCESSFULLY! 🎉")
